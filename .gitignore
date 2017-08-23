@@ -1,0 +1,7 @@
+*.txt
+*.json
+*.idea/*
+*.db
+*.xlsx
+*.pyc
+settings.py
