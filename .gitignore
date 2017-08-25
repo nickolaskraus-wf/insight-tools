@@ -1,7 +1,3 @@
-*.txt
-*.json
-*.idea/*
-*.db
-*.xlsx
+.idea/*
 *.pyc
 settings.py
