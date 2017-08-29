@@ -2,7 +2,6 @@
 
 import base64
 import datetime
-import hashlib
 import json
 import sys
 import time
@@ -25,9 +24,8 @@ def main():
 
     project = sys.argv[2]
     now = str(datetime.datetime.now())
-    hash = hashlib.sha256(str(now))
 
-    resource = now + '-' + str(hash.hexdigest())[0:7]
+    resource = 'testing'
     _time = str(now).replace(' ', 'T') + 'Z'
     project = 's~' + project
 
@@ -86,7 +84,7 @@ def create_url(base, path, params=None):
 
 
 def usage():
-    print 'usage: simulate_new_gcp_error.py [-l | --local][-s | --staging] [project]'
+    print 'usage: simulate_gcp_error.py [-l | --local][-s | --staging] [project]'
 
 
 if __name__ == '__main__':
