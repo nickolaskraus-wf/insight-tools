@@ -1,2 +1,2 @@
 datadog==0.16.0
-requests==2.17.3
+requests==2.5.3

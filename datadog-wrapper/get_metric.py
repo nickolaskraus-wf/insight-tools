@@ -25,7 +25,15 @@ def main():
                                metric='insight.test_api', points=1, query=query)
 
     print json.dumps(payload, indent=2)
+    print 'Total metrics: ' + str(sum_metrics(payload))
 
+
+def sum_metrics(payload):
+    total = 0
+    for point in payload['series'][0]['pointlist']:
+        total += point[1]
+
+    return int(total)
 
 if __name__ == '__main__':
     main()
