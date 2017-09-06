@@ -7,9 +7,10 @@ from settings import DATADOG_API_TOKEN, DATADOG_APP_TOKEN
 
 class Datadog():
     def __init__(self):
-        self.initalize()
+        self.initialize(self)
 
-    def initalize(self):
+    @staticmethod
+    def initialize(self):
         try:
             host_name = os.environ['HTTP_HOST']
         except KeyError:
