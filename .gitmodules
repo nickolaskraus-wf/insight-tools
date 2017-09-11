@@ -1,0 +1,3 @@
+[submodule "cloud-storage/python-docs-samples"]
+	path = cloud-storage/python-docs-samples
+	url = git@github.com:GoogleCloudPlatform/python-docs-samples.git
