@@ -3,3 +3,4 @@ google-cloud-storage==1.4.0
 google-cloud-pubsub==0.28.2
 GoogleAppEngineCloudStorageClient==1.9.22.1
 requests==2.18.4
+pyperclip==1.5.27

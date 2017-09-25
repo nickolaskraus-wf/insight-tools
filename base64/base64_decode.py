@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+import base64
+import binascii
+import json
+
+import pyperclip
+
+
+def main():
+    encoded_data = pyperclip.paste()
+
+    decoded_data = ''
+    try:
+        decoded_data = base64.decodestring(encoded_data)
+    except binascii.Error:
+        print "Error: Not base64 encoded"
+        exit(1)
+
+    json_obj = json.loads(decoded_data)
+    print json.dumps(json_obj, indent=2, sort_keys=True)
+
+
+if __name__ == "__main__":
+    main()

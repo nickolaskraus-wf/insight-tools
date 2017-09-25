@@ -70,6 +70,8 @@ def main():
 
     if r.status_code != 200:
         print 'An error has occurred. Status code: ' + str(r.status_code)
+        # TODO: Use BeautifulSoup to parse error response
+        print r.text
         sys.exit(1)
     else:
         print 'Success! Status code: ' + str(r.status_code)
