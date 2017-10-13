@@ -23,16 +23,20 @@ def main():
         base_url = INSIGHT_STAGING_BASE_URL
 
     project = sys.argv[2]
-    now = str(datetime.datetime.now())
+    now = datetime.datetime.now()
+    yesterday = datetime.datetime.now() - datetime.timedelta(1)
+    two_days_ago = datetime.datetime.now() - datetime.timedelta(2)
 
     resource = 'testing'
     _time = str(now).replace(' ', 'T') + 'Z'
+    _time_yesterday = str(yesterday).replace(' ', 'T') + 'Z'
+    _time_two_days_ago = str(two_days_ago).replace(' ', 'T') + 'Z'
     project = 's~' + project
 
     log = {
         "latency": "0.01337s",
         "resource": resource,
-        "_time": _time,
+        "_time": _time_two_days_ago,
         "versionId": "xx.xx.xx",
         "appId": project,
         "stack": ""
