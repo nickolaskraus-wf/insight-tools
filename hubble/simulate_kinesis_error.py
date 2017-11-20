@@ -8,7 +8,7 @@ import time
 
 import requests
 
-from settings import INSIGHT_STAGING_BASE_URL, INCOMING_GCP_ERRORS_PATH, \
+from settings import INSIGHT_STAGING_BASE_URL, INCOMING_KINESIS_ERRORS_PATH, \
     LOCAL_COOKIE, STAGING_COOKIE, PROCESS_ERRORS_PATH
 
 
@@ -22,31 +22,27 @@ def main():
     else:
         base_url = INSIGHT_STAGING_BASE_URL
 
-    project = sys.argv[2]
+    service = sys.argv[2]
     now = datetime.datetime.now()
-    yesterday = datetime.datetime.now() - datetime.timedelta(1)
-    two_days_ago = datetime.datetime.now() - datetime.timedelta(2)
-
-    resource = 'testing'
-    _time = str(now).replace(' ', 'T') + 'Z'
-    _time_yesterday = str(yesterday).replace(' ', 'T') + 'Z'
-    _time_two_days_ago = str(two_days_ago).replace(' ', 'T') + 'Z'
-    project = 's~' + project
+    _time = now.strftime('%Y/%m/%d %H:%M:%S')
+    message = 'testing'
 
     log = {
-        "latency": "0.01337s",
-        "resource": resource,
-        "_time": _time,
-        "versionId": "xx.xx.xx",
-        "appId": project,
-        "stack": ""
+        "context": {},
+        "exception": {},
+        "level": "",
+        "message": message,
+        "metadata": {},
+        "service": service,
+        "time": _time,
+        "version": ""
     }
 
     encoded_data = base64.b64encode(json.dumps(log))
     raw_body = {'data': [encoded_data]}
     encoded_body = json.dumps(raw_body)
 
-    url = create_url(base_url, INCOMING_GCP_ERRORS_PATH)
+    url = create_url(base_url, INCOMING_KINESIS_ERRORS_PATH)
 
     headers = {
         'Content-Type': 'application/json',
@@ -68,7 +64,7 @@ def main():
         else:
             print 'Success! Status code: ' + str(r.status_code)
 
-    # simulate gcp error
+    # simulate kinesis error
     r = requests.post(url, headers=headers, data=encoded_body, cookies=cookies)
 
     if r.status_code != 200:

@@ -17,18 +17,11 @@ def main():
     Datadog()
 
     now = datetime.datetime.utcnow()
-    date = now.strftime('%m/%d/%Y')
 
     # get metrics for last minute
     start = int(unix_time((now - datetime.timedelta(seconds=1)).replace(
         microsecond=0)))
     end = int(unix_time(now.replace(microsecond=0)))
-
-    # model IN-2365 logic
-    # start = int(unix_time((now - datetime.timedelta(minutes=11)).replace(
-    #     second=0, microsecond=0)))
-    # end = int(unix_time((now - datetime.timedelta(minutes=10)).replace(
-    #     second=0, microsecond=0)))
 
     payload = api.Metric.query(start=start, end=end, query=query)
 
@@ -54,7 +47,7 @@ def sum_metrics(series):
 
 
 def usage():
-    print 'usage: test_in_2365.py [query]'
+    print 'Usage: python get_metric.py <query>'
 
 
 if __name__ == '__main__':

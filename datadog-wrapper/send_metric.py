@@ -19,7 +19,7 @@ def main():
 
 
 def usage():
-    print 'usage: get_metric.py [metric] [tags]'
+    print 'Usage: python get_metric.py <metric> <tags>'
 
 
 if __name__ == '__main__':

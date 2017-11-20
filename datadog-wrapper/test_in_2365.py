@@ -61,7 +61,7 @@ def sum_metrics(series):
 
 
 def usage():
-    print 'usage: get_metric.py [query]'
+    print 'Usage: python test_in_2365.py <query>'
 
 
 if __name__ == '__main__':

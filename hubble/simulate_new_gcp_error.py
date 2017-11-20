@@ -50,13 +50,14 @@ def main():
         'Content-Type': 'application/json',
     }
 
-    cookie = {
+    cookies = {
         "dev_appserver_login": LOCAL_COOKIE,
-        "SACSID": STAGING_COOKIE}
+        "SACSID": STAGING_COOKIE
+    }
 
     # kick off process errors if local
     if sys.argv[1] == '-l' or sys.argv[1] == '--local':
-        r = requests.get(base_url + PROCESS_ERRORS_PATH, cookies=cookie)
+        r = requests.get(base_url + PROCESS_ERRORS_PATH, cookies=cookies)
         time.sleep(10)
 
         if r.status_code != 200:
@@ -66,7 +67,7 @@ def main():
             print 'Success! Status code: ' + str(r.status_code)
 
     # simulate gcp error
-    r = requests.post(url, headers=headers, data=encoded_body, cookies=cookie)
+    r = requests.post(url, headers=headers, data=encoded_body, cookies=cookies)
 
     if r.status_code != 200:
         print 'An error has occurred. Status code: ' + str(r.status_code)
