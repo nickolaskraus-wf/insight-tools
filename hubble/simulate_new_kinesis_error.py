@@ -79,7 +79,7 @@ def main():
     form_data = {
         "start_time": start_time.strftime(TIME_FORMAT_NO_MICRO_SEC),
         "end_time": end_time.strftime(TIME_FORMAT_NO_MICRO_SEC),
-        "env": env,
+        "env": env or None,
         "source": "kinesis",
         "should_check_lock": "True"
     }
