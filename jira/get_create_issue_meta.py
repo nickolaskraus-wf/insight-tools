@@ -31,13 +31,10 @@ App scope required: READ
 Response content type: application/json
 
 """
-import base64
 import json
 import sys
 
-import requests
-
-from settings import JIRA_USER, JIRA_PASS, JIRA_HOST
+from api import jira_fetch
 
 
 def main():
@@ -106,21 +103,6 @@ def parse_response(response, required_only):
             print 'Failed to parse response. Error: {}'.format(e)
 
     return parsed_response
-
-
-def jira_fetch(path):
-    url = JIRA_HOST + path
-
-    auth = base64.b64encode('%s:%s' % (JIRA_USER, JIRA_PASS))
-
-    headers = {
-        'Authorization': 'Basic %s' % auth,
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.get(url, headers=headers)
-
-    return response
 
 
 def usage():
