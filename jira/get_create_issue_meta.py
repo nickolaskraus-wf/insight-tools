@@ -6,6 +6,7 @@ Usage:
   Options:
     -s, --show-fields      show fields in the createmeta response
     -r, --required-only    show only required fields in the createmeta response
+
   Arguments
     issuetypeIds      issue type IDs
     issuetypeNames    issue type names
@@ -41,12 +42,12 @@ def main():
     options = {}
 
     for arg in sys.argv:
-        if arg == ('-s' or '--show-fields'):
+        if arg in ('-s', '--show-fields'):
             options['show_fields'] = True
-        if arg == ('-r' or '--required-only'):
+        if arg in ('-r', '--required-only'):
             options['required_only'] = True
 
-    if len(sys.argv) > 3:
+    if len(sys.argv) > len(options):
         if (len(sys.argv) - len(options)) % 2 != 1:
             print('Error: Incorrect number of command line arguments.')
             usage()
@@ -54,9 +55,10 @@ def main():
 
     arguments = sys.argv[len(options) + 1:]
 
-    query = build_query(arguments, options.get('show_fields'))
+    url = build_url('/rest/api/2/issue/createmeta', arguments,
+                    options.get('show_fields'))
 
-    response = jira_fetch('/rest/api/2/issue/createmeta?{}'.format(query))
+    response = jira_fetch(url)
 
     print 'Status:'
     print response.status_code
@@ -67,10 +69,9 @@ def main():
         print json.dumps(parsed_reponse, indent=4, sort_keys=True)
     except ValueError as e:
         print 'Error: {}'.format(e)
-        print response.text
 
 
-def build_query(arguments, show_fields):
+def build_url(path, arguments, show_fields):
     types = []
     parameters = []
 
@@ -87,18 +88,23 @@ def build_query(arguments, show_fields):
         query += '{}={}{}'.format(types[x], parameters[x], '&')
 
     query = query[:-1]
-    print 'Query: ' + '/rest/api/2/issue/createmeta?{}'.format(query)
-    return query
+    url = '{}?{}'.format(path, query)
+    print 'URL: ' + url
+    return url
 
 
 def parse_response(response, required_only):
     parsed_response = json.loads(response)
     if required_only:
         try:
-            fields = parsed_response['projects'][0]['issuetypes'][0]['fields']
-            for field in fields.keys():
-                if not fields[field]['required']:
-                    del fields[field]
+            projects = parsed_response['projects']
+            for project in projects:
+                issuetypes = project['issuetypes']
+                for issuetype in issuetypes:
+                    fields = issuetype['fields']
+                    for field in fields.keys():
+                        if not fields[field]['required']:
+                            del fields[field]
         except (IndexError, KeyError) as e:
             print 'Failed to parse response. Error: {}'.format(e)
 
