@@ -128,7 +128,19 @@ def main():
         except ValueError as e:
             print 'Error: {}'.format(e)
     else:
-        print('Creating issue..')
+        data = json.load(open(options['file']))
+        result = jira_fetch('/rest/api/2/issue/', data=json.dumps(data),
+                            method='POST')
+
+        print 'Status:'
+        print result.status_code
+        print 'Response:'
+        try:
+            parsed = json.loads(result.content)
+            print json.dumps(parsed, indent=4, sort_keys=True)
+        except ValueError as e:
+            print 'Error: {}'.format(e)
+            print result.text
 
 
 def build_url(path, arguments, show_fields):
@@ -231,9 +243,9 @@ def generate_skeleton(response, is_sparse):
                                 skeleton[field]['allowedValues'][0] = dict
                             else:
                                 skeleton[field]['allowedValues'].append(dict)
-                name = fields[field].get('name')
-                skeleton[field]['name'] = name
                 skeleton[field]['type'] = _type
+                skeleton[field]['name'] = fields[field].get('name')
+                skeleton[field]['hasDefaultValue'] = fields[field].get('hasDefaultValue')
 
     except (IndexError, KeyError) as e:
         print 'Failed to parse response. Error: {}'.format(e)

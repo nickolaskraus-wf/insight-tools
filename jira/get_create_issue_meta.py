@@ -6,6 +6,7 @@ Usage:
   Options:
     -s, --show-fields      show fields in the createmeta response
     -r, --required-only    show only required fields in the createmeta response
+    -d, --no-default       show fields that have no default value
 
   Arguments
     issuetypeIds      issue type IDs
@@ -46,6 +47,8 @@ def main():
             options['show_fields'] = True
         if arg in ('-r', '--required-only'):
             options['required_only'] = True
+        if arg in ('-d', '--no-default'):
+            options['no_default'] = True
 
     if len(sys.argv) > len(options):
         if (len(sys.argv) - len(options)) % 2 != 1:
@@ -65,7 +68,8 @@ def main():
     print 'Response:'
     try:
         parsed_reponse = parse_response(response.content,
-                                        options.get('required_only'))
+                                        options.get('required_only'),
+                                        options.get('no_default'))
         print json.dumps(parsed_reponse, indent=4, sort_keys=True)
     except ValueError as e:
         print 'Error: {}'.format(e)
@@ -93,9 +97,9 @@ def build_url(path, arguments, show_fields):
     return url
 
 
-def parse_response(response, required_only):
+def parse_response(response, required_only, no_default):
     parsed_response = json.loads(response)
-    if required_only:
+    if required_only or no_default:
         try:
             projects = parsed_response['projects']
             for project in projects:
@@ -103,8 +107,14 @@ def parse_response(response, required_only):
                 for issuetype in issuetypes:
                     fields = issuetype['fields']
                     for field in fields.keys():
-                        if not fields[field]['required']:
-                            del fields[field]
+                        if required_only:
+                            if not fields[field]['required']:
+                                del fields[field]
+                                continue
+                        if no_default:
+                            if fields[field]['hasDefaultValue']:
+                                del fields[field]
+                                continue
         except (IndexError, KeyError) as e:
             print 'Failed to parse response. Error: {}'.format(e)
 
@@ -113,7 +123,7 @@ def parse_response(response, required_only):
 
 def usage():
     print 'usage: get_create_issue_meta.py [-s, --show-fields] ' \
-          '[-r, --required-only] <query-type> <parameters> ...'
+          '[-r, --required-only] [-d, --no-default] <query-type> <parameters> ...'
 
 
 if __name__ == '__main__':
