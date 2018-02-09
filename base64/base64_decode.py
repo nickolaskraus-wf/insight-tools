@@ -1,4 +1,10 @@
-#!/usr/bin/python
+"""
+Description:
+  Prints the base64 decoded contents of the clipboard to standard out.
+
+Usage:
+  Copy base64 encoded data to your clipboard
+"""
 
 import base64
 import binascii
@@ -14,8 +20,8 @@ def main():
     try:
         decoded_data = base64.decodestring(encoded_data)
     except binascii.Error:
-        print "Error: Not base64 encoded\n"
-        print "Usage: Copy base64 data to your clipboard."
+        print "Error: Not base64 encoded.\n"
+        print "Usage: Copy base64 encoded data to your clipboard."
         exit(1)
 
     json_obj = json.loads(decoded_data)

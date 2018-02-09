@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-# import argparse
 import base64
 import datetime
 import hashlib
@@ -15,25 +14,6 @@ from settings import INSIGHT_STAGING_BASE_URL, INCOMING_KINESIS_ERRORS_PATH, \
 
 
 def main():
-    # TODO: Add command line argument parser
-    # # configure command line argument parser
-    # parser = argparse.ArgumentParser(
-    #     description='Simulate a Kinesis error log on Insight.')
-    # group = parser.add_mutually_exclusive_group()
-    # # service to which the error is sent
-    # parser.add_argument('service',
-    #                     help='service to which the error is sent')
-    # # number of errors to send to Insight
-    # parser.add_argument('-n', '--number', type=int, default=1,
-    #                     help='number of errors to send')
-    # # specify if error should be new
-    # parser.add_argument('--new', action='store_true',
-    #                     help='send new error')
-    # # specify if error should be sent to local or staging Insight instance
-    # group.add_argument('-l', '--local', action='store_true',
-    #                     help='send to local instance')
-    # group.add_argument('-s', '--staging', action='store_true',
-    #                     help='send to staging instance')
 
     if len(sys.argv) < 3:
         usage()
@@ -49,7 +29,7 @@ def main():
     # env is used for the process_errors request
     env = get_service_env(service)
     print service, env
-    now = datetime.datetime.now()
+    now = datetime.datetime.now() - datetime.timedelta(days=10)
     _time = now.strftime('%Y/%m/%d %H:%M:%S')
     hash = hashlib.sha256(str(now))
     context = str(datetime.datetime.now()) + '-' + str(hash.hexdigest())[0:7]
@@ -59,9 +39,9 @@ def main():
         "context": {},
         "exception": {},
         "level": "",
-        "message": context,
+        "message": 'IN-2723',
         "metadata": {
-            "logger": "w_comments"
+            "logger": "workspacesservice"
         },
         "service": service,
         "time": _time,

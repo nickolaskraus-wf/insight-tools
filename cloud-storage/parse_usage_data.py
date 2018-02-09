@@ -1,3 +1,11 @@
+"""
+Description:
+  Work In Progress for accessing Google Cloud Storage API and parsing usage data.
+
+Usage:
+
+"""
+
 import os
 from collections import defaultdict
 
