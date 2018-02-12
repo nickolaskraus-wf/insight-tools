@@ -129,8 +129,8 @@ python create_issue.py [-i, --issue-config <file>]
 If the command is executed with the `--issue-config` (abbr. `-i`) option, a request is made to the Jira API using the configuration file provided by the user. If the command is executed with the `--generate-skeleton` option, the `/rest/api/2/issue/createmeta` API is used to generate a skeleton for a configuration file containing the required fields and applicable values.
 
 ```bash
-python get_create_issue_meta.py [-s, --show-fields] [-r, --required-only]
-                                <query-type> <parameters>
+python get_create_issue_meta.py [-s, --show-fields] [-r, --required-only] [-d, --no-default] \
+                                <query-type> <parameters> ...
 ```
 
 * Returns the metadata for creating issues.

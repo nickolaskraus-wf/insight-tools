@@ -226,10 +226,6 @@ def generate_skeleton(response, is_sparse):
                 if allowed_values:
                     skeleton[field]['allowedValues'] = []
                     for dict in allowed_values:
-                        skeleton[field]['allowedValues'].append(dict)
-                if allowed_values:
-                    skeleton[field]['allowedValues'] = []
-                    for dict in allowed_values:
                         if _type == 'array':
                             skeleton[field]['allowedValues'].append(dict)
                         else:
@@ -246,6 +242,7 @@ def generate_skeleton(response, is_sparse):
                 skeleton[field]['type'] = _type
                 skeleton[field]['name'] = fields[field].get('name')
                 skeleton[field]['hasDefaultValue'] = fields[field].get('hasDefaultValue')
+                skeleton[field]['required'] = fields[field].get('required')
 
     except (IndexError, KeyError) as e:
         print 'Failed to parse response. Error: {}'.format(e)
