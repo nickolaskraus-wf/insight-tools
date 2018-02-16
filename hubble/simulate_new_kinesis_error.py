@@ -29,7 +29,7 @@ def main():
     # env is used for the process_errors request
     env = get_service_env(service)
     print service, env
-    now = datetime.datetime.now() - datetime.timedelta(days=10)
+    now = datetime.datetime.now()
     _time = now.strftime('%Y/%m/%d %H:%M:%S')
     hash = hashlib.sha256(str(now))
     context = str(datetime.datetime.now()) + '-' + str(hash.hexdigest())[0:7]
@@ -39,7 +39,7 @@ def main():
         "context": {},
         "exception": {},
         "level": "",
-        "message": 'IN-2723',
+        "message": context,
         "metadata": {
             "logger": "workspacesservice"
         },
