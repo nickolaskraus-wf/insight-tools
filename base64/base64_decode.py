@@ -1,9 +1,10 @@
 """
 Description:
-  Prints the base64 decoded contents of the clipboard to standard out.
+  Outputs the base64 decoded contents of the clipboard to standard out.
 
 Usage:
-  Copy base64 encoded data to your clipboard
+  1. Copy base64 encoded data to your clipboard.
+  2. Run: python base64_decode.py
 """
 
 import base64
@@ -20,7 +21,7 @@ def main():
     try:
         decoded_data = base64.decodestring(encoded_data)
     except binascii.Error:
-        print "Error: Not base64 encoded.\n"
+        print "Error: Clipboard contents is not base64 encoded.\n"
         print "Usage: Copy base64 encoded data to your clipboard."
         exit(1)
 

@@ -1,0 +1,42 @@
+{
+  "exception": {
+    "stacktrace": "N/A",
+    "message": "formatting validation mismatch",
+    "type": "framework.ValidationError"
+  },
+  "container": {
+    "source": "/dev/appintel/log",
+    "id": "0eac44897c65"
+  },
+  "service": "cerberus",
+  "level": "error",
+  "process": {
+    "cmd": "/skaardb/bin/skaardb",
+    "pid": 12779
+  },
+  "timestamp": "2018-06-12T12:00:00.000000Z",
+  "sequence": 429312,
+  "source": "container",
+  "host": {
+    "cluster": "harbour-prod-cf",
+    "fqdn": "i-066b2097ff4f98be0.internal.harbour",
+    "zone": "us-east-1d",
+    "id": "i-066b2097ff4f98be0"
+  },
+  "version": "2.0.0",
+  "context": {
+    "membershipId": "TWVtYmVyc2hpcB82MzAwNjg3NDIyMDYyNTky",
+    "userId": "V0ZVc2VyHzY2ODU2MDQ0MDQzOTYwMzI",
+    "correlationId": "1923f8b4732d461a8070f0a1637b57f4",
+    "documentId": "7239737c98c54033a94a477d08a3c0bd",
+    "accountId": "QWNjb3VudB82NTUwMDgzMjg4MDM5NDI0"
+  },
+  "message": "v1 changeset invalid",
+  "type": "log",
+  "handler": "UwWFpxcb",
+  "metadata": {
+    "operation": "",
+    "rev": 6674,
+    "version": "default"
+  }
+}

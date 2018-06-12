@@ -1,5 +1,4 @@
 .idea/*
 *.pyc
 settings.py
-*.json
 cloud-storage/usage_data/*

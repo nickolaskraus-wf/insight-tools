@@ -60,51 +60,23 @@ python test_in_2365.py <query>
 
 ### hubble
 
-In order to use these scripts, you will need to create `settings.py`:
+In order to use this script, you will need to create `settings.py`:
 
 `settings.py`
 
 ```python
-LOCAL_COOKIE = 'user.name@workiva.com:True'
-STAGING_COOKIE = ''
-INCOMING_GCP_ERRORS_PATH = '/api/v1/hubble/incoming_gcp_errors'
-PROCESS_ERRORS_PATH = '/cron/create_tasks_to_process_errors'
-INSIGHT_STAGING_BASE_URL = 'https://w-insight-staging.appspot.com'
+COOKIE_LOCAL = 'user.name@workiva.com:True'
+COOKIE_STAGING = ''
 ```
 
-`STAGING_COOKIE` can be found in the Chrome Developer Tools:
+`COOKIE_STAGING` can be retrieved from the **Chrome Developer Tools**. After logging into https://w-insight-staging.appspot.com/:
 **⇧+⌘+c** > **Application** > **Cookies** > **SACSID**
 
-In addition, these scripts share the following flags:
-
-```
--l | --local      send error to local instance (i.e. `localhost:8080`)
--s | --staging    send error to staging instance (i.e. `w-insight-staging.appspot.com`)
-```
+For help information, run:
 
 ```bash
-python simulate_gcp_error.py [-l | --local] [-s | --staging] <project>
+python simulate_error.py -h
 ```
-
-* Create a GCP error for `<project>`
-
-```bash
-python simulate_kinesis_error.py [-l | --local] [-s | --staging] <service>
-```
-
-* Create a Kinesis error for `<service>`
-
-```bash
-python simulate_new_gcp_error.py [-l | --local] [-s | --staging] <project>
-```
-
-* Create a 'New' error for `<project>`
-
-```bash
-python simulate_new_kinesis_error.py [-l | --local] [-s | --staging] <service>
-```
-
-* Create a 'New' error for `<service>`
 
 ### jira
 

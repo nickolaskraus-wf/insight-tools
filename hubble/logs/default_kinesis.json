@@ -1,0 +1,18 @@
+{
+  "context": {},
+  "exception": {
+    "stacktrace": "",
+    "type": "",
+    "message": ""
+  },
+  "level": "",
+  "message": "",
+  "metadata": {
+    "app_version": "",
+    "logger": "",
+    "version": ""
+  },
+  "service": "",
+  "time": "",
+  "version": ""
+}

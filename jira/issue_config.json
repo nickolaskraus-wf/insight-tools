@@ -1,0 +1,25 @@
+{
+  "fields": {
+    "customfield_10040": "Step1.. Step 2.. Step 3...",
+    "customfield_10201": {
+      "value": "Yes"
+    },
+    "customfield_10274": {
+      "value": "Yes"
+    },
+    "customfield_10325": {
+      "value": "Yes"
+    },
+    "customfield_11420": {
+      "value": "Yes"
+    },
+    "description": "This is a description.",
+    "issuetype": {
+      "name": "Bug"
+    },
+    "project": {
+      "name": "TEST"
+    },
+    "summary": "This is a summary."
+  }
+}
