@@ -1,0 +1,41 @@
+{
+  "container": {
+    "id": "95ab32616d8e",
+    "source": "/dev/appintel/log"
+  },
+  "context": {
+    "accountId": "QWNjb3VudB82NDYxNDAwMDU1Njc2OTI4",
+    "correlationId": "da26d969fbda403a85e23c153f556f3d",
+    "documentId": "19896552a2424c6180e4a94489869455",
+    "membershipId": "TWVtYmVyc2hpcB80OTY3NTI2NTY5MjEzOTUy",
+    "userId": "V0ZVc2VyHzQ1OTI4MzI5MjI5MTA3MjA"
+  },
+  "exception": {
+    "message": "stream type xbrl not supported",
+    "stacktrace": "N/A",
+    "type": "errors.errorString"
+  },
+  "handler": "sTcm7DRz",
+  "host": {
+    "cluster": "harbour-prod-cf",
+    "id": "i-0e3824c7ca43e9a99",
+    "zone": "us-east-1b"
+  },
+  "level": "error",
+  "message": "applyOperation.init",
+  "metadata": {
+    "app_version": "default",
+    "operation": "",
+    "rev": 6674
+  },
+  "process": {
+    "cmd": "/skaardb/bin/skaardb",
+    "pid": 74648
+  },
+  "sequence": 739678,
+  "service": "cerberus",
+  "source": "container",
+  "timestamp": "2018-06-13T12:00:00.000000Z",
+  "type": "log",
+  "version": "2.0.0"
+}
