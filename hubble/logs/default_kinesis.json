@@ -1,18 +1,16 @@
 {
   "context": {},
   "exception": {
+    "message": "",
     "stacktrace": "",
-    "type": "",
-    "message": ""
+    "type": ""
   },
   "level": "",
   "message": "",
   "metadata": {
     "app_version": "",
-    "logger": "",
-    "version": ""
+    "logger": ""
   },
-  "app_version": "",
-  "service": "",
-  "time": ""
+  "service": {},
+  "timestamp": ""
 }
