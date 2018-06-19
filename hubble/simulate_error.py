@@ -1,18 +1,16 @@
 """
-usage: simulate_error.py [-h] [-l | -s] [-n | -r] [-t TIME] [-c COUNT]
-                         [-f FILE]
+usage: simulate_error.py [-h] [-s] [-n | -r] [-t TIME] [-c COUNT] [-f FILE]
                          {gcp,kinesis} service
 
 Simulate error(s) from GCP or Kinesis.
 
 positional arguments:
   {gcp,kinesis}         source from which the error(s) is sent
-  service               service to which the error(s) is sent
+  service               service from which the error(s) is sent
 
 optional arguments:
   -h, --help            show this help message and exit
-  -l, --local           send to local instance
-  -s, --staging         send to staging instance
+  -s, --staging         send to staging instance, defaults to local
   -n, --new             send new error(s)
   -r, --resurfaced      send resurfaced error(s)
   -t TIME, --time TIME  date and time of the error(s). Format: Y-m-d H:M:S
@@ -32,9 +30,12 @@ import time
 
 import requests
 
-from constants import (BASE_URL_LOCAL, BASE_URL_STAGING, SERVICE_SUFFIX,
-                       TIME_FORMAT_DEFAULT_DATETIME, TIME_FORMAT_NO_MICRO_SEC,
-                       TIME_FORMAT_GCP_ERROR, TIME_FORMAT_KINESIS_ERROR)
+from constants import (BASE_URL_LOCAL, BASE_URL_STAGING, DEFAULT_GCP_FILE,
+                       DEFAULT_KINESIS_FILE, INCOMING_GCP_ERRORS,
+                       INCOMING_KINESIS_ERRORS, SERVICE_SUFFIX,
+                       TIME_FORMAT_DEFAULT_DATETIME, TIME_FORMAT_GCP_RAW_ERROR,
+                       TIME_FORMAT_KINESIS_ERROR, TIME_FORMAT_KINESIS_RAW_ERROR,
+                       TIME_FORMAT_NO_MICRO_SEC)
 from settings import (COOKIE_LOCAL, COOKIE_STAGING)
 
 
@@ -43,14 +44,9 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='Simulate error(s) from GCP or Kinesis.')
 
-    group = parser.add_mutually_exclusive_group()
-
-    # specify if error(s) should be sent to a local or staging instance, de-
-    # faults to 'local'
-    group.add_argument('-l', '--local', action='store_true',
-                       help='send to local instance')
-    group.add_argument('-s', '--staging', action='store_true',
-                       help='send to staging instance')
+    # specify if error(s) should be sent to staging, defaults to local
+    parser.add_argument('-s', '--staging', action='store_true',
+                        help='send to staging instance, defaults to local')
 
     group = parser.add_mutually_exclusive_group()
 
@@ -61,8 +57,9 @@ def parse_args():
     group.add_argument('-r', '--resurfaced', action='store_true',
                        help='send resurfaced error(s)')
 
-    # specify the date and time of the error(s)
-    parser.add_argument('-t', '--time', default=datetime.datetime.now(),
+    # specify the date and time of the error(s), defaults to
+    # datetime.datetime.now()
+    parser.add_argument('-t', '--time', default=None,
                         help='date and time of the error(s). Format: {}'.
                         format(TIME_FORMAT_DEFAULT_DATETIME.replace('%', '')))
 
@@ -89,47 +86,37 @@ def main():
     errors = []
     args = parse_args()
 
-    if args.local:
-        base_url = BASE_URL_LOCAL
-    elif args.staging:
+    service, env = get_service_env(args.service)
+
+    if args.staging:
         base_url = BASE_URL_STAGING
     else:
         base_url = BASE_URL_LOCAL
 
-    url = ''
     if args.source == 'gcp':
-        url = create_url(base_url, '/api/v1/hubble/incoming_gcp_errors')
-    elif args.source == 'kinesis':
-        url = create_url(base_url, '/api/v1/hubble/incoming_errors')
+        url = create_url(base_url, INCOMING_GCP_ERRORS)
+    else:
+        url = create_url(base_url, INCOMING_KINESIS_ERRORS)
 
-    service, env = get_service_env(args.service)
-
-    if isinstance(args.time, str):
+    if args.time:
         try:
             time = datetime.datetime.strptime(
                 args.time, TIME_FORMAT_DEFAULT_DATETIME)
         except ValueError:
             raise ValueError(
-                'Argument -t, --time must be in the format: {}'.format(
+                'Argument -t TIME must be in the format: {}.'.format(
                     TIME_FORMAT_DEFAULT_DATETIME))
     else:
-        time = args.time
+        time = datetime.datetime.now()
+
+    if args.file:
+        log = open_json_file(args.file)
+    else:
+        log = populate_default_log(args.source, time, args.service)
+
+    log = simulate_insight_lambda(args.source, log, env)
 
     hash = hashlib.sha256(str(datetime.datetime.now()))
-
-    log = {}
-    if args.file:
-        try:
-            with open(args.file) as f:
-                try:
-                    log = json.load(f)
-                    log = simulate_insight_lambda(log)
-                except ValueError:
-                    raise ValueError('{} is not valid JSON'.format(args.file))
-        except IOError:
-            raise IOError('{} does not exist'.format(args.file))
-    else:
-        log = generate_default_log(time, args.source, args.service)
 
     if args.new:
         if args.source == 'gcp':
@@ -151,7 +138,7 @@ def main():
 
     simulate_incoming_errors(errors, url)
 
-    if args.local:
+    if not args.staging:
         url = create_url(base_url, '/tasks/process_errors')
         simulate_process_errors(env, args.source, url)
 
@@ -168,8 +155,8 @@ def simulate_incoming_errors(errors, url):
     :type errors: list
     :param url: url for incoming errors endpoint
     :type url: str
-    :return:
-    :rtype:
+    :return: None
+    :rtype: None
     """
     headers = {
         'Content-Type': 'application/json'
@@ -183,18 +170,17 @@ def simulate_incoming_errors(errors, url):
     for e in errors:
         data = json.dumps({'data': [base64.b64encode(json.dumps(e))]})
 
-        r = requests.post(url, headers=headers, data=data, cookies=cookies)
+        response = requests.post(
+            url, headers=headers, data=data, cookies=cookies)
 
-        if r.status_code != 200:
-            print 'An error has occurred. Status code: ' + str(r.status_code)
-            # TODO: Use BeautifulSoup to parse error response
-            print r.text
+        if response.status_code == 200:
+            continue
+        elif response.status_code == 403:
+            print 'Error! 403 Forbidden.'
             sys.exit(1)
-        else:
-            print 'Success! Status code: ' + str(r.status_code)
 
+    print 'Success!'
     time.sleep(1)
-    return
 
 
 def simulate_process_errors(env, source, url):
@@ -205,25 +191,16 @@ def simulate_process_errors(env, source, url):
         - /cron/create_tasks_to_process_errors
 
     :param env: environment from which the error(s) is sent:
-        prod, -eu, -demo, -sandbox, -wk-dev, or -eu
+        prod, eu, demo, sandbox, wk-dev, or eu
     :type env: str
     :param source: source from which the error(s) is sent:
         gcp, kinesis
     :type source: str
     :param url: url for process errors endpoint
     :type url: str
-    :return:
-    :rtype:
+    :return: None
+    :rtype: None
     """
-    headers = {
-        'X-AppEngine-QueueName': 'yes'
-    }
-
-    cookies = {
-        'dev_appserver_login': COOKIE_LOCAL,
-        'SACSID': COOKIE_STAGING
-    }
-
     utc = datetime.datetime.utcnow()
     start_time = utc - datetime.timedelta(seconds=60)
     end_time = utc + datetime.timedelta(seconds=60)
@@ -235,81 +212,274 @@ def simulate_process_errors(env, source, url):
         'should_check_lock': 'True'
     }
 
-    r = requests.post(url, headers=headers, data=form_data,
-                      cookies=cookies)
+    headers = {
+        'X-AppEngine-QueueName': 'yes'
+    }
 
-    if r.status_code != 200:
-        print 'An error has occurred. Status code: ' + str(r.status_code)
-        # TODO: Use BeautifulSoup to parse error response
-        print r.text
+    cookies = {
+        'dev_appserver_login': COOKIE_LOCAL,
+        'SACSID': COOKIE_STAGING
+    }
+
+    response = requests.post(
+        url, headers=headers, data=form_data, cookies=cookies)
+
+    if response.status_code == 200:
+        print 'Success!'
+    elif response.status_code == 403:
+        print 'Error! 403 Forbidden.'
         sys.exit(1)
-    else:
-        print 'Success! Status code: ' + str(r.status_code)
 
 
-def simulate_insight_lambda(log):
+def simulate_insight_lambda(source, log, env):
     """
-    Simulate the Insight AWS Lambda function.
+    Process a raw GCP or Kinesis error log.
 
-    :param log: log to be processed
-    :type log: dict
-    :return: processed log
-    :rtype: dict
-    """
-    t = log.get('timestamp')
-    if t.find('.') >= 0:
-        timestamp = datetime.datetime.strptime(
-            t.rsplit('.', 1)[0], "%Y-%m-%dT%H:%M:%S")
-    else:
-        timestamp = datetime.datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ")
-
-    log['time'] = timestamp.strftime('%Y/%m/%d %H:%M:%S')
-    del log['timestamp']
-
-    return log
-
-
-def generate_default_log(time, source, service):
-    """
-    Generate a default error log using a given time, source, and service.
-
-    :param time: timestamp of the log
-    :type time: datetime.datetime
     :param source: source from which the error(s) is sent:
         gcp, kinesis
     :type source: str
+    :param log: log to be processed
+    :type log: dict
+    :param env: environment from which the error(s) is sent:
+        prod, eu, demo, sandbox, wk-dev, or eu
+    :type env: str
+    :return: processed log
+    :rtype: dict
+    """
+    if source == 'gcp':
+        return simulate_insight_gcp_lambda(log)
+    elif source == 'kinesis':
+        return simulate_insight_kinesis_lambda(log, env)
+
+
+def simulate_insight_gcp_lambda(log):
+    """
+    Process a raw GCP error log.
+
+    After processing, a log from GCP has the following form:
+    {
+      "_time": "%Y-%m-%dT%H:%M:%S.0000Z",
+      "appId": "s~service",
+      "latency": "",
+      "resource": "",
+      "stack": "",
+      "versionId": ""
+    }
+
+    :param log: raw GCP error log
+    :type log: dict
+    :type env: str
+    :return: processed, GCP error log
+    :rtype: dict
+    """
+    _time = log.get('endTime')
+    app_id = log.get('appId')
+    latency = log.get('latency')
+    resource = log.get('resource')
+    version_id = log.get('versionId')
+
+    # TODO: currently unable to parse GCP stack
+    error = {
+        '_time': _time,
+        'appId': app_id,
+        'resource': resource,
+        'latency': latency,
+        'stack': '',
+        'versionId': version_id,
+    }
+
+    return error
+
+
+def simulate_insight_kinesis_lambda(log, env):
+    """
+    Process a raw Kinesis error log.
+
+    After processing, a log from Kinesis has the following form:
+    {
+      "context": {},
+      "exception": {},
+      "level": "",
+      "message": "",
+      "metadata": {},
+      "service": "service-env",
+      "time": "%Y/%m/%d %H:%M:%S"
+    }
+
+    :param log: raw Kinesis error log
+    :type log: dict
+    :param env: environment from which the error(s) is sent:
+        prod, eu, demo, sandbox, wk-dev, or eu
+    :type env: str
+    :return: processed, Kinesis error log
+    :rtype: dict
+    """
+    context = log.get('context', {})
+    exception = log.get('exception', {})
+    level = log.get('level', 'info')
+    message = log.get('message', '')
+    metadata = log.get('metadata', {})
+    version_name = log.get('container', {}).get('name')
+
+    source = ''
+    service = log.get('service', {}).get('name') or ''
+    if 'app-int-collection-gateway' in service:
+        service = metadata.get('app_name', service)
+        source = 'client'
+
+    # timestamp is of form: %Y-%m-%dT%H:%M:%S.%fZ or %Y-%m-%dT%H:%M:%SZ
+    timestamp = log.get('timestamp')
+    if timestamp.find('.') >= 0:
+        time = datetime.datetime.strptime(
+            timestamp.rsplit('.', 1)[0], "%Y-%m-%dT%H:%M:%S")
+    else:
+        time = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+
+    if service:
+        error = {
+            'context': context,
+            'exception': exception,
+            'level': level,
+            'message': message,
+            'metadata': metadata,
+            'service': '{}-{}'.format(service, env),
+            'time': time.strftime(TIME_FORMAT_KINESIS_ERROR)
+        }
+
+        if source:
+            error['source'] = source
+
+        if version_name:
+            error['version'] = version_name
+
+        return error
+
+    else:
+        raise ValueError('Log does not contain a service.')
+
+
+def populate_default_log(source, time, service, is_frontend=False):
+    """
+    Populate a default, raw error log using a given time and service.
+
+    The source is used to determine the log format (gcp or kinesis).
+
+    :param source: source from which the error(s) is sent:
+        gcp, kinesis
+    :type source: str
+    :param time: timestamp of the log
+    :type time: datetime.datetime
     :param service: service from which the error(s) is sent
     :type service: str
+    :param is_frontend: if the log is from the frontend
+    :type is_frontend: bool
     :return: default error log
     :rtype: dict
     """
     log = {}
 
-    filename = ''
     if source == 'gcp':
-        filename = 'logs/default_gcp.json'
+        filename = DEFAULT_GCP_FILE
     elif source == 'kinesis':
-        filename = 'logs/default_kinesis.json'
-
-    with open(filename) as f:
-        try:
-            log = json.load(f)
-        except ValueError:
-            raise ValueError('{} is not valid JSON'.format(filename))
-
-    if source == 'gcp':
-        log['_time'] = datetime.datetime.strftime(
-            time, TIME_FORMAT_GCP_ERROR)
-        log['appId'] = '{}{}'.format('s~', service)
-        log['resource'] = 'context@type'
-    elif source == 'kinesis':
-        log['exception']['message'] = 'context@type'
-        log['service'] = service
-        log['time'] = datetime.datetime.strftime(
-            time, TIME_FORMAT_KINESIS_ERROR)
+        filename = DEFAULT_KINESIS_FILE
     else:
-        return {}
+        # if source is not gcp or kinesis, return empty log
+        return log
 
+    log = open_json_file(filename)
+
+    if source == 'gcp':
+        return populate_default_gcp_log(log, time, service)
+    elif source == 'kinesis':
+        return populate_default_kinesis_log(log, time, service, is_frontend)
+
+
+def populate_default_gcp_log(log, timestamp, service):
+    """
+    Populate a default, raw GCP error log using a given time and service.
+
+    A log from GCP has the following form:
+    {
+      "appId": "s~service",
+      "endTime": "%Y-%m-%dT%H:%M:%S.%fZ",
+      "latency": "",
+      "resource": "",
+      "stack": "",
+      "versionId": ""
+    }
+
+    :param log: default, Kinesis error log
+    :type log: dict
+    :param timestamp: timestamp of the log
+    :type timestamp: datetime.datetime
+    :param service: service from which the error(s) is sent
+    :type service: str
+    :return:
+    """
+    log['appId'] = '{}{}'.format('s~', service)
+    log['endTime'] = datetime.datetime.strftime(
+        timestamp, TIME_FORMAT_GCP_RAW_ERROR)
+    log['resource'] = 'context@type'
+    return log
+
+
+def populate_default_kinesis_log(log, timestamp, service, is_frontend=False):
+    """
+    Populate a default, raw Kinesis error log using a given time and service.
+
+    A log from Kinesis has the following form:
+    {
+      "context": {},
+      "exception": {},
+      "level": "",
+      "message": "",
+      "metadata": {},
+      "service": {
+        "name": "service"
+      }
+      "timestamp": "%Y-%m-%dT%H:%M:%S.%fZ" | "%Y-%m-%dT%H:%M:%SZ"
+    }
+
+    A log from Kinesis frontend has the following form:
+    {
+      "context": {},
+      "exception": {},
+      "level": "",
+      "message": "",
+      "metadata": {
+        "app_name": "service"
+      },
+      "service": {
+        "name": "app-int-collection-gateway"
+      }
+      "timestamp": "%Y-%m-%dT%H:%M:%S.%fZ"
+    }
+
+    If service:name is 'app-int-collection-gateway', metadata:app_name is used.
+    These logs are generated by App Intelligence.
+
+    :param log: default, Kinesis error log
+    :type log: dict
+    :param timestamp: timestamp of the log
+    :type timestamp: datetime.datetime
+    :param service: service from which the error(s) is sent
+    :type service: str
+    :param is_frontend: if the log is from the frontend
+    :type is_frontend: bool
+    :return:
+    """
+    log['exception']['message'] = 'context@type'
+    log['timestamp'] = datetime.datetime.strftime(
+        timestamp, TIME_FORMAT_KINESIS_RAW_ERROR)
+    if not is_frontend:
+        log['service'] = {
+            'name': service
+        }
+    else:
+        log['metadata']['app_name'] = service
+        log['service'] = {
+            'name': 'app-int-collection-gateway'
+        }
     return log
 
 
@@ -330,9 +500,9 @@ def create_url(base, path, params=None):
         return base + path
     else:
         url = base + path + '?'
-        for key, value in params.iteritems():
+        for key, value in sorted(params.iteritems()):
             url += key + '=' + str(value) + '&'
-        return url
+        return url[:-1]
 
 
 def get_service_env(service):
@@ -343,7 +513,7 @@ def get_service_env(service):
         Cerberus-prod => 'Cerberus' 'prod'
 
     Service environment can be:
-        prod, -eu, -demo, -sandbox, -wk-dev, or -eu
+        prod, eu, demo, sandbox, wk-dev, or eu
 
     If the service does not have an environment appended onto its name, an em-
     pty string is returned.
@@ -355,8 +525,27 @@ def get_service_env(service):
     """
     for suffix in SERVICE_SUFFIX:
         if suffix in service:
-            return service.rsplit(suffix, 1)[0], suffix
+            return service.rsplit(suffix, 1)[0], suffix[1:]
     return service, ''
+
+
+def open_json_file(filename):
+    """
+    Attempt to open and deserialize a JSON file.
+
+    :param filename: name of the JSON file
+    :type filename: str
+    :return: dict of log
+    :rtype: dict
+    """
+    try:
+        with open(filename) as f:
+            try:
+                return json.load(f)
+            except ValueError:
+                raise ValueError('{} is not valid JSON.'.format(filename))
+    except IOError:
+        raise IOError('{} does not exist.'.format(filename))
 
 
 if __name__ == '__main__':
