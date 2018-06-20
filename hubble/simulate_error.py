@@ -1,12 +1,12 @@
 """
 usage: simulate_error.py [-h] [-s] [-n | -r] [-t TIME] [-c COUNT] [-f FILE]
-                         {gcp,kinesis} service
+                         [-p PROJECT]
+                         {gcp,kinesis}
 
 Simulate error(s) from GCP or Kinesis.
 
 positional arguments:
   {gcp,kinesis}         source from which the error(s) is sent
-  service               service from which the error(s) is sent
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -17,6 +17,8 @@ optional arguments:
   -c COUNT, --count COUNT
                         number of errors to send
   -f FILE, --file FILE  file containing a log
+  -p PROJECT, --project PROJECT
+                        project from which the error(s) is sent
 """
 
 import argparse
