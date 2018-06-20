@@ -71,13 +71,13 @@ def parse_args():
     parser.add_argument('-f', '--file', default=None,
                         help='file containing a log')
 
+    # project from which the error(s) is sent
+    parser.add_argument('-p', '--project', default=None,
+                        help='project from which the error(s) is sent')
+
     # source (gcp or kinesis) from which the error(s) is sent
     parser.add_argument('source', choices=['gcp', 'kinesis'],
                         help='source from which the error(s) is sent')
-
-    # service from which the error(s) is sent
-    parser.add_argument('service',
-                        help='service from which the error(s) is sent')
 
     return parser.parse_args()
 
@@ -86,7 +86,10 @@ def main():
     errors = []
     args = parse_args()
 
-    service, env = get_service_env(args.service)
+    if args.project:
+        service, env = get_service_env(args.project)
+    else:
+        service, env = '', ''
 
     if args.staging:
         base_url = BASE_URL_STAGING
@@ -112,9 +115,9 @@ def main():
     if args.file:
         log = open_json_file(args.file)
     else:
-        log = populate_default_log(args.source, time, args.service)
+        log = populate_default_log(args.source, time, service)
 
-    log = simulate_insight_lambda(args.source, log, env)
+    log = simulate_insight_lambda(args.source, log, service, env)
 
     hash = hashlib.sha256(str(datetime.datetime.now()))
 
@@ -231,7 +234,7 @@ def simulate_process_errors(env, source, url):
         sys.exit(1)
 
 
-def simulate_insight_lambda(source, log, env):
+def simulate_insight_lambda(source, log, service, env):
     """
     Process a raw GCP or Kinesis error log.
 
@@ -240,6 +243,8 @@ def simulate_insight_lambda(source, log, env):
     :type source: str
     :param log: log to be processed
     :type log: dict
+    :param service: service from which the error(s) is sent
+    :type service: str
     :param env: environment from which the error(s) is sent:
         prod, eu, demo, sandbox, wk-dev, or eu
     :type env: str
@@ -247,12 +252,12 @@ def simulate_insight_lambda(source, log, env):
     :rtype: dict
     """
     if source == 'gcp':
-        return simulate_insight_gcp_lambda(log)
+        return simulate_insight_gcp_lambda(log, service)
     elif source == 'kinesis':
-        return simulate_insight_kinesis_lambda(log, env)
+        return simulate_insight_kinesis_lambda(log, service, env)
 
 
-def simulate_insight_gcp_lambda(log):
+def simulate_insight_gcp_lambda(log, service):
     """
     Process a raw GCP error log.
 
@@ -268,7 +273,8 @@ def simulate_insight_gcp_lambda(log):
 
     :param log: raw GCP error log
     :type log: dict
-    :type env: str
+    :param service: service from which the error(s) is sent
+    :type service: str
     :return: processed, GCP error log
     :rtype: dict
     """
@@ -278,7 +284,9 @@ def simulate_insight_gcp_lambda(log):
     resource = log.get('resource')
     version_id = log.get('versionId')
 
-    # TODO: currently unable to parse GCP stack
+    if service:
+        app_id = '{}{}'.format('s~', service)
+
     error = {
         '_time': _time,
         'appId': app_id,
@@ -291,7 +299,7 @@ def simulate_insight_gcp_lambda(log):
     return error
 
 
-def simulate_insight_kinesis_lambda(log, env):
+def simulate_insight_kinesis_lambda(log, service, env):
     """
     Process a raw Kinesis error log.
 
@@ -308,6 +316,8 @@ def simulate_insight_kinesis_lambda(log, env):
 
     :param log: raw Kinesis error log
     :type log: dict
+    :param service: service from which the error(s) is sent
+    :type service: str
     :param env: environment from which the error(s) is sent:
         prod, eu, demo, sandbox, wk-dev, or eu
     :type env: str
@@ -322,10 +332,17 @@ def simulate_insight_kinesis_lambda(log, env):
     version_name = log.get('container', {}).get('name')
 
     source = ''
-    service = log.get('service', {}).get('name') or ''
-    if 'app-int-collection-gateway' in service:
-        service = metadata.get('app_name', service)
-        source = 'client'
+
+    if service:
+        service = service
+    else:
+        service = log.get('service', {}).get('name') or ''
+        if 'app-int-collection-gateway' in service:
+            service = metadata.get('app_name', service)
+            source = 'client'
+
+    if env:
+        service = '{}-{}'.format(service, env)
 
     # timestamp is of form: %Y-%m-%dT%H:%M:%S.%fZ or %Y-%m-%dT%H:%M:%SZ
     timestamp = log.get('timestamp')
@@ -342,7 +359,7 @@ def simulate_insight_kinesis_lambda(log, env):
             'level': level,
             'message': message,
             'metadata': metadata,
-            'service': '{}-{}'.format(service, env),
+            'service': service,
             'time': time.strftime(TIME_FORMAT_KINESIS_ERROR)
         }
 

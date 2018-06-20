@@ -34,7 +34,24 @@ class SimulateErrorTestCase(unittest.TestCase):
             'stack': '',
             'versionId': ''
         }
-        log = simulate_error.simulate_insight_gcp_lambda(raw_log)
+        log = simulate_error.simulate_insight_gcp_lambda(raw_log, 'project')
+        self.assertEqual({
+            '_time': '2018-06-14T12:00:00.000000Z',
+            'appId': 's~project',
+            'latency': '',
+            'resource': 'context@type',
+            'stack': '',
+            'versionId': ''
+        }, log)
+        raw_log = {
+            'appId': 's~service',
+            'endTime': '2018-06-14T12:00:00.000000Z',
+            'latency': '',
+            'resource': 'context@type',
+            'stack': '',
+            'versionId': ''
+        }
+        log = simulate_error.simulate_insight_gcp_lambda(raw_log, '')
         self.assertEqual({
             '_time': '2018-06-14T12:00:00.000000Z',
             'appId': 's~service',
@@ -64,14 +81,51 @@ class SimulateErrorTestCase(unittest.TestCase):
               'app_version': ''
             }
         }
-        log = simulate_error.simulate_insight_kinesis_lambda(raw_log, 'env')
+        log = simulate_error.simulate_insight_kinesis_lambda(
+            raw_log, 'project', 'env')
         self.assertEqual({
             'exception': {
               'stacktrace': '',
               'message': 'context@type',
               'type': ''
             },
-            'service': 'service-env',
+            'service': 'project-env',
+            'level': '',
+            'time': '2018/06/14 12:00:00',
+            'context': {},
+            'message': '',
+            'metadata': {
+              'logger': '',
+              'app_version': ''
+            }
+        }, log)
+        raw_log = {
+            'exception': {
+              'stacktrace': '',
+              'message': 'context@type',
+              'type': ''
+            },
+            'service': {
+                'name': 'service'
+            },
+            'level': '',
+            'timestamp': '2018-06-14T12:00:00.000000Z',
+            'context': {},
+            'message': '',
+            'metadata': {
+              'logger': '',
+              'app_version': ''
+            }
+        }
+        log = simulate_error.simulate_insight_kinesis_lambda(
+            raw_log, '', '')
+        self.assertEqual({
+            'exception': {
+              'stacktrace': '',
+              'message': 'context@type',
+              'type': ''
+            },
+            'service': 'service',
             'level': '',
             'time': '2018/06/14 12:00:00',
             'context': {},
@@ -100,14 +154,15 @@ class SimulateErrorTestCase(unittest.TestCase):
               'app_name': 'service'
             }
         }
-        log = simulate_error.simulate_insight_kinesis_lambda(raw_log, 'env')
+        log = simulate_error.simulate_insight_kinesis_lambda(
+            raw_log, '', '')
         self.assertEqual({
             'exception': {
               'stacktrace': '',
               'message': 'context@type',
               'type': ''
             },
-            'service': 'service-env',
+            'service': 'service',
             'source': 'client',
             'level': '',
             'time': '2018/06/14 12:00:00',
@@ -232,7 +287,7 @@ class SimulateErrorTestCase(unittest.TestCase):
         # test valid JSON
         read_date = json.dumps({'a': 1, 'b': 2, 'c': 3})
         mock_open = mock.mock_open(read_data=read_date)
-        with mock.patch("__builtin__.open", mock_open):
+        with mock.patch('__builtin__.open', mock_open):
             result = simulate_error.open_json_file('filename')
         self.assertEqual({'a': 1, 'b': 2, 'c': 3}, result)
         # test invalid JSON
