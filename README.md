@@ -1,6 +1,8 @@
 # insight-tools
 Python scripts for automating manual tasks.
 
+[![codecov](https://codecov.io/gh/nickolaskraus-wf/insight-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/nickolaskraus-wf/insight-tools)
+
 ## Installation
 ```bash
 pip install -r requirements.txt

@@ -2,3 +2,5 @@
 *.pyc
 settings.py
 cloud-storage/usage_data/*
+.coverage
+coverage.xml

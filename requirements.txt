@@ -1,4 +1,6 @@
 GoogleAppEngineCloudStorageClient
+codecov
+coverage
 datadog
 freezegun
 google-cloud-pubsub
