@@ -1,0 +1,16 @@
+{
+  "context": {},
+  "exception": {
+    "message": "Testing fuzzywuzzy...",
+    "stacktrace": "These stacks are rather similar...\n(x)",
+    "type": ""
+  },
+  "level": "",
+  "message": "",
+  "metadata": {
+    "app_version": "",
+    "logger": ""
+  },
+  "service": {},
+  "timestamp": "2018-06-22T12:00:00.000Z"
+}

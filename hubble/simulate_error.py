@@ -29,6 +29,7 @@ import hashlib
 import json
 import sys
 import time
+import random
 
 import requests
 
@@ -139,7 +140,14 @@ def main():
             log_copy['time'] = time - datetime.timedelta(days=90)
         errors.append(log_copy)
 
-    errors = [log] * args.count
+    for i in range(args.count):
+        errors.append(copy.deepcopy(log))
+
+    for e in errors:
+        hash = hashlib.sha256(str(datetime.datetime.now()))
+        stacktrace = e['exception']['stacktrace']
+        e['exception']['stacktrace'] = stacktrace.replace(
+            'x', str(hash.hexdigest())[0:7])
 
     simulate_incoming_errors(errors, url)
 
