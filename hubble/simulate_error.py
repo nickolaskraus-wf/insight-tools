@@ -139,7 +139,8 @@ def main():
             log_copy['time'] = time - datetime.timedelta(days=90)
         errors.append(log_copy)
 
-    errors = [log] * args.count
+    for i in range(args.count):
+        errors.append(copy.deepcopy(log))
 
     simulate_incoming_errors(errors, url)
 
