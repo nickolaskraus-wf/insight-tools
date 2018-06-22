@@ -285,14 +285,14 @@ class SimulateErrorTestCase(unittest.TestCase):
 
     def test_open_json_file(self):
         # test valid JSON
-        read_date = json.dumps({'a': 1, 'b': 2, 'c': 3})
-        mock_open = mock.mock_open(read_data=read_date)
+        read_data = json.dumps({'a': 1, 'b': 2, 'c': 3})
+        mock_open = mock.mock_open(read_data=read_data)
         with mock.patch('__builtin__.open', mock_open):
             result = simulate_error.open_json_file('filename')
         self.assertEqual({'a': 1, 'b': 2, 'c': 3}, result)
         # test invalid JSON
-        read_date = ''
-        mock_open = mock.mock_open(read_data=read_date)
+        read_data = ''
+        mock_open = mock.mock_open(read_data=read_data)
         with mock.patch("__builtin__.open", mock_open):
             with self.assertRaises(ValueError) as context:
                 simulate_error.open_json_file('filename')

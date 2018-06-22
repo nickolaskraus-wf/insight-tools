@@ -1,0 +1,21 @@
+{
+  "context": {},
+  "exception": {
+    "message": "skip this message",
+    "stacktrace": "",
+    "type": "skip this type"
+  },
+  "level": "",
+  "message": "",
+  "metadata": {
+    "_hubbleContext": "use this context",
+    "_hubbleErrorType": "use this error type",
+    "_hubbleStackHash": "use this stack hash",
+    "_internal": "this key should be removed",
+    "app_version": "",
+    "comment": "_hubbleContext, _hubbleErrorType, and _hubbleStackHash should replace exception:message, exception:type, and the stask hash respectively. Keys starting with \'_\' should be removed.",
+    "logger": ""
+  },
+  "service": {},
+  "timestamp": "2018-06-22T12:00:00.000Z"
+}
