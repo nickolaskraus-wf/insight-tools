@@ -1,0 +1,16 @@
+{
+  "context": {},
+  "exception": {
+    "message": "Do not use this message.",
+    "stacktrace": "stacktrace.dart",
+    "type": "<TError type: 0 message:\n'The following should be equivalent: * = 24601.\nThe following should be equivalent: *:*:* = 123:456:789'>"
+  },
+  "level": "",
+  "message": "Use this message, since 'exception:type' contains TError type: <type>",
+  "metadata": {
+    "app_version": "",
+    "logger": ""
+  },
+  "service": {},
+  "timestamp": "2018-06-25T12:00:00.000Z"
+}
