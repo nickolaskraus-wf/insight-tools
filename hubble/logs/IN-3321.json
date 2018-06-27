@@ -1,0 +1,22 @@
+{
+  "context": {
+    "comment": "This should be removed from the ReportCardContent entity 'stacks' property and reside exclusively in a ErrorMetadata entity 'content' property."
+  },
+  "exception": {
+    "message": "Testing@IN-3321",
+    "stacktrace": "",
+    "type": "Testing"
+  },
+  "level": "",
+  "message": "",
+  "metadata": {
+    "_hubbleContext": "This should be removed in conjunction with IN-3324.",
+    "_hubbleErrorType": "This should be removed in conjunction with IN-3324.",
+    "_hubbleStackHash": "This should be removed in conjunction with IN-3324.",
+    "app_version": "",
+    "comment": "_hubbleContext, _hubbleErrorType, and _hubbleStackHash should be removed in conjunction with IN-3324. Metadata and context should reside exclusively in an ErrorMetadata entity ('metadata' and 'content' property, respectively) and be removed from the ReportCardContent entity 'stacks' property. This metadata should only be visible in v2. It should no longer be visible for v1!",
+    "logger": ""
+  },
+  "service": {},
+  "timestamp": "2018-06-27T12:00:00.000Z"
+}
