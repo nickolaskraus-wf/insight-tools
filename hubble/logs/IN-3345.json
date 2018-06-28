@@ -1,0 +1,12 @@
+{
+  "appId": "",
+  "endTime": "2018-06-27T12:00:00.000000Z",
+  "latency": "",
+  "resource": "Testing@IN-3345",
+  "stack": "",
+  "versionId": "",
+  "_hubbleContext": "use this context",
+  "_hubbleErrorType": "use this error type",
+  "_hubbleStackHash": "use this stack hash.. or this stack hash",
+  "_hubbleNormalizedStack": "use this normalized stack"
+}

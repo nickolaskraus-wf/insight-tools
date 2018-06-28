@@ -142,6 +142,8 @@ def main():
     for i in range(args.count):
         errors.append(copy.deepcopy(log))
 
+    print errors
+
     simulate_incoming_errors(errors, url)
 
     if not args.staging:
@@ -286,6 +288,10 @@ def simulate_insight_gcp_lambda(log, service):
     latency = log.get('latency')
     resource = log.get('resource')
     version_id = log.get('versionId')
+    _hubbleContext = log.get('_hubbleContext')
+    _hubbleErrorType = log.get('_hubbleErrorType')
+    _hubbleStackHash = log.get('_hubbleStackHash')
+    _hubbleNormalizedStack = log.get('_hubbleNormalizedStack')
 
     if service:
         app_id = '{}{}'.format('s~', service)
@@ -297,6 +303,10 @@ def simulate_insight_gcp_lambda(log, service):
         'latency': latency,
         'stack': '',
         'versionId': version_id,
+        '_hubbleContext': _hubbleContext,
+        '_hubbleErrorType': _hubbleErrorType,
+        '_hubbleStackHash': _hubbleStackHash,
+        '_hubbleNormalizedStack': _hubbleNormalizedStack
     }
 
     return error
