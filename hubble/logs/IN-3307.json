@@ -1,0 +1,16 @@
+{
+  "context": {},
+  "exception": {
+    "message": "Testing IN-3307.. Fourth attempt..",
+    "stacktrace": "",
+    "type": ""
+  },
+  "level": "",
+  "message": "",
+  "metadata": {
+    "app_version": "",
+    "logger": ""
+  },
+  "service": {},
+  "timestamp": "2018-07-13T12:00:00.000Z"
+}

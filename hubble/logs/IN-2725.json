@@ -1,0 +1,23 @@
+{
+  "container": {},
+  "context": {},
+  "exception": {
+    "message": "Error Loading Datatable Experience",
+    "stacktrace": "testing.dart",
+    "type": "CerberusError(code:UNKNOWN (11), message:the requested workbook has been trashed)"
+  },
+  "host": {},
+  "level": "error",
+  "message": "Error Loading Datatable Experience",
+  "metadata": {
+    "app_name": "wdesk",
+    "library_name": "app_intelligence_dart",
+    "logger": "datatables.datatableExperienceFactory"
+  },
+  "name": "datatables.datatableExperienceFactory",
+  "process": {},
+  "service": {
+    "name": "app-int-collection-gateway"
+  },
+  "timestamp": "2018-07-18T12:00:00.000Z"
+}

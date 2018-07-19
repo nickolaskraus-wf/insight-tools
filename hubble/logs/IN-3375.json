@@ -1,0 +1,23 @@
+{
+  "container": {},
+  "exception": {
+    "message": "Uncaught exception during experience runtime",
+    "stacktrace": "stacktrace.dart",
+    "type": "<TTransportError.NOT_OPEN message: NATS transport not open>"
+  },
+  "host": {},
+  "level": "error",
+  "message": "Uncaught exception during experience runtime",
+  "metadata": {
+    "app_name": "wdesk",
+    "logger": "wdesk_sdk.spreadsheet.experience_uncaught"
+  },
+  "name": "wdesk_sdk.spreadsheet.experience_uncaught",
+  "process": {},
+  "service": {
+    "name": "app-int-collection-gateway"
+  },
+  "source": "",
+  "timestamp": "2018-07-16T12:00:00.000Z",
+  "type": ""
+}

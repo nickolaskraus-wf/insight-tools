@@ -1,0 +1,21 @@
+{
+  "container": {},
+  "exception": {
+    "message": "exception:message",
+    "stacktrace": "exception:stacktrace",
+    "type": "<TTransportError.NOT_OPEN - message: transport not open>"
+  },
+  "host": {},
+  "level": "error",
+  "message": "Uncaught exception during experience runtime",
+  "metadata": {
+    "app_name": "wdesk"
+  },
+  "process": {},
+  "service": {
+    "name": "app-int-collection-gateway"
+  },
+  "source": "",
+  "timestamp": "2018-07-12T12:00:00.000Z",
+  "type": ""
+}

@@ -1,0 +1,23 @@
+{
+  "context": {
+    "accountId": "a",
+    "correlationId": "b",
+    "userId": "c"
+  },
+  "exception": {
+    "message": "",
+    "stacktrace": "",
+    "type": ""
+  },
+  "level": "",
+  "message": "",
+  "metadata": {
+    "_hubbleContext": "",
+    "_hubbleErrorType": "",
+    "_hubbleStackHash": "",
+    "app_version": "",
+    "logger": ""
+  },
+  "service": {},
+  "timestamp": "2018-07-06T12:00:00.000Z"
+}
