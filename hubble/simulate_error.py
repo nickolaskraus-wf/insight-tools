@@ -184,6 +184,9 @@ def simulate_incoming_errors(errors, url):
         elif response.status_code == 403:
             print 'Error! 403 Forbidden.'
             sys.exit(1)
+        else:
+            print 'Error! {}'.format(response.status_code)
+            sys.exit(1)
 
     print 'Success!'
     time.sleep(1)
@@ -234,6 +237,9 @@ def simulate_process_errors(env, source, url):
         print 'Success!'
     elif response.status_code == 403:
         print 'Error! 403 Forbidden.'
+        sys.exit(1)
+    else:
+        print 'Error! {}'.format(response.status_code)
         sys.exit(1)
 
 
