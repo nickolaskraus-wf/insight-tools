@@ -4,7 +4,7 @@ from freezegun import freeze_time
 import datetime
 import json
 
-from hubble import simulate_error
+from insight.hubble import simulate_error
 
 
 class SimulateErrorTestCase(unittest.TestCase):
@@ -274,7 +274,7 @@ class SimulateErrorTestCase(unittest.TestCase):
         url = simulate_error.create_url(base, path, params)
         self.assertEqual('http://example.com/api?a=1&b=2&c=3', url)
 
-    @mock.patch('hubble.constants.SERVICE_SUFFIX', ['-env'])
+    @mock.patch('insight.constants.SERVICE_SUFFIX', ['-env'])
     def test_get_service_env(self):
         service, env = simulate_error.get_service_env('service-prod')
         self.assertEqual('service', service)
