@@ -27,19 +27,22 @@ import copy
 import datetime
 import hashlib
 import json
+import os
 import sys
 import time
 
 import requests
 
-from insight.constants import (
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from constants import (
     BASE_URL_LOCAL, BASE_URL_STAGING, DEFAULT_GCP_FILE, DEFAULT_KINESIS_FILE,
     INCOMING_GCP_ERRORS, INCOMING_KINESIS_ERRORS, SERVICE_SUFFIX,
     TIME_FORMAT_DEFAULT_DATETIME, TIME_FORMAT_GCP_RAW_ERROR,
     TIME_FORMAT_KINESIS_ERROR, TIME_FORMAT_KINESIS_RAW_ERROR,
     TIME_FORMAT_NO_MICRO_SEC)
 
-from insight.settings import (COOKIE_LOCAL, COOKIE_STAGING)
+from settings import (COOKIE_LOCAL, COOKIE_STAGING)
 
 
 def parse_args():
