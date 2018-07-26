@@ -1,7 +1,10 @@
+import os
 import sys
 import time
 
 import requests
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from constants import (BASE_URL_STAGING, START_RUNNING_APOLLO)
 from settings import (COOKIE_LOCAL, COOKIE_STAGING)
