@@ -1,5 +1,11 @@
+# Global
 BASE_URL_LOCAL = 'http://localhost:8080'
 BASE_URL_STAGING = 'https://w-insight-staging.appspot.com'
+
+# Apollo
+START_RUNNING_APOLLO = '/tasks/start_running_apollo'
+
+# Hubble
 INCOMING_GCP_ERRORS = '/api/v1/hubble/incoming_gcp_errors'
 INCOMING_KINESIS_ERRORS = '/api/v1/hubble/incoming_errors'
 PROCESS_ERRORS_PATH = '/cron/create_tasks_to_process_errors'
