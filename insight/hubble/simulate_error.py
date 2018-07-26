@@ -1,12 +1,13 @@
 """
 usage: simulate_error.py [-h] [-s] [-n | -r] [-t TIME] [-c COUNT] [-f FILE]
                          [-p PROJECT]
-                         {gcp,kinesis}
+                         {external,gcp,kinesis}
 
 Simulate error(s) from GCP or Kinesis.
 
 positional arguments:
-  {gcp,kinesis}         source from which the error(s) is sent
+  {external,gcp,kinesis}
+                        source from which the error(s) is sent
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -36,11 +37,11 @@ import requests
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from constants import (
-    BASE_URL_LOCAL, BASE_URL_STAGING, DEFAULT_GCP_FILE, DEFAULT_KINESIS_FILE,
-    INCOMING_GCP_ERRORS, INCOMING_KINESIS_ERRORS, SERVICE_SUFFIX,
-    TIME_FORMAT_DEFAULT_DATETIME, TIME_FORMAT_GCP_RAW_ERROR,
-    TIME_FORMAT_KINESIS_ERROR, TIME_FORMAT_KINESIS_RAW_ERROR,
-    TIME_FORMAT_NO_MICRO_SEC)
+    BASE_URL_LOCAL, BASE_URL_STAGING, DEFAULT_EXTERNAL_FILE, DEFAULT_GCP_FILE,
+    DEFAULT_KINESIS_FILE, INCOMING_GCP_ERRORS, INCOMING_KINESIS_ERRORS,
+    SEND_ERRORS, SERVICE_SUFFIX, TIME_FORMAT_DEFAULT_DATETIME,
+    TIME_FORMAT_GCP_RAW_ERROR, TIME_FORMAT_KINESIS_ERROR,
+    TIME_FORMAT_KINESIS_RAW_ERROR, TIME_FORMAT_NO_MICRO_SEC)
 
 from settings import (COOKIE_LOCAL, COOKIE_STAGING)
 
@@ -81,8 +82,8 @@ def parse_args():
     parser.add_argument('-p', '--project', default=None,
                         help='project from which the error(s) is sent')
 
-    # source (gcp or kinesis) from which the error(s) is sent
-    parser.add_argument('source', choices=['gcp', 'kinesis'],
+    # source (external, gcp, kinesis) from which the error(s) is sent
+    parser.add_argument('source', choices=['external', 'gcp', 'kinesis'],
                         help='source from which the error(s) is sent')
 
     return parser.parse_args()
@@ -102,7 +103,9 @@ def main():
     else:
         base_url = BASE_URL_LOCAL
 
-    if args.source == 'gcp':
+    if args.source == 'external':
+        url = create_url(base_url, SEND_ERRORS)
+    elif args.source == 'gcp':
         url = create_url(base_url, INCOMING_GCP_ERRORS)
     else:
         url = create_url(base_url, INCOMING_KINESIS_ERRORS)
@@ -123,12 +126,16 @@ def main():
     else:
         log = populate_default_log(args.source, time, service)
 
-    log = simulate_insight_lambda(args.source, log, service, env)
+    if args.source in ['gcp', 'kinesis']:
+        log = simulate_insight_lambda(args.source, log, service, env)
 
     hash = hashlib.sha256(str(datetime.datetime.now()))
 
     if args.new:
-        if args.source == 'gcp':
+        if args.source == 'external':
+            log['metadata']['hubbleContext'] += '{}{}'.format(
+                '-', str(hash.hexdigest())[0:7])
+        elif args.source == 'gcp':
             log['resource'] += '{}{}'.format(
                 '-', str(hash.hexdigest())[0:7])
         elif args.source == 'kinesis':
@@ -146,11 +153,17 @@ def main():
     for i in range(args.count):
         errors.append(copy.deepcopy(log))
 
-    simulate_incoming_errors(errors, url)
+    if args.source in ['gcp', 'kinesis']:
+        simulate_incoming_errors(errors, url)
+    else:
+        simulate_send_errors(errors, url)
 
     if not args.staging:
         url = create_url(base_url, '/tasks/process_errors')
-        simulate_process_errors(env, args.source, url)
+        if args.source == 'external':
+            simulate_process_errors(env, 'kinesis', url)
+        else:
+            simulate_process_errors(env, args.source, url)
 
 
 def simulate_incoming_errors(errors, url):
@@ -196,6 +209,48 @@ def simulate_incoming_errors(errors, url):
     time.sleep(1)
 
 
+def simulate_send_errors(errors, url):
+    """
+    Simulate incoming error(s) from an external source.
+
+    Uses the Insight API to simulate incoming error:
+        - /api/v1/hubble/send_errors
+
+    :param errors: list of dicts corresponding to errors
+    :type errors: list
+    :param url: url for incoming errors endpoint
+    :type url: str
+    :return: None
+    :rtype: None
+    """
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    cookies = {
+        'dev_appserver_login': COOKIE_LOCAL,
+        'SACSID': COOKIE_STAGING
+    }
+
+    for e in errors:
+        data = json.dumps({'data': [e]})
+
+        response = requests.post(
+            url, headers=headers, data=data, cookies=cookies)
+
+        if 200 <= response.status_code <= 299:
+            continue
+        elif response.status_code == 403:
+            print 'Error! 403 Forbidden.'
+            sys.exit(1)
+        else:
+            print 'Error! {}'.format(response.status_code)
+            sys.exit(1)
+
+    print 'Success!'
+    time.sleep(1)
+
+
 def simulate_process_errors(env, source, url):
     """
     Simulate process error(s).
@@ -207,7 +262,7 @@ def simulate_process_errors(env, source, url):
         prod, eu, demo, sandbox, wk-dev, or eu
     :type env: str
     :param source: source from which the error(s) is sent:
-        gcp, kinesis
+        external, gcp, kinesis
     :type source: str
     :param url: url for process errors endpoint
     :type url: str
@@ -252,7 +307,7 @@ def simulate_insight_lambda(source, log, service, env):
     Process a raw GCP or Kinesis error log.
 
     :param source: source from which the error(s) is sent:
-        gcp, kinesis
+        external, gcp, kinesis
     :type source: str
     :param log: log to be processed
     :type log: dict
@@ -392,10 +447,10 @@ def populate_default_log(source, time, service, is_frontend=False):
     """
     Populate a default, raw error log using a given time and service.
 
-    The source is used to determine the log format (gcp or kinesis).
+    The source is used to determine the log format (api, gcp, or kinesis).
 
     :param source: source from which the error(s) is sent:
-        gcp, kinesis
+        external, gcp, kinesis
     :type source: str
     :param time: timestamp of the log
     :type time: datetime.datetime
@@ -408,7 +463,9 @@ def populate_default_log(source, time, service, is_frontend=False):
     """
     log = {}
 
-    if source == 'gcp':
+    if source == 'external':
+        filename = DEFAULT_EXTERNAL_FILE
+    elif source == 'gcp':
         filename = DEFAULT_GCP_FILE
     elif source == 'kinesis':
         filename = DEFAULT_KINESIS_FILE
@@ -418,10 +475,43 @@ def populate_default_log(source, time, service, is_frontend=False):
 
     log = open_json_file(filename)
 
-    if source == 'gcp':
+    if source == 'external':
+        return populate_default_external_log(log, time, service)
+    elif source == 'gcp':
         return populate_default_gcp_log(log, time, service)
     elif source == 'kinesis':
         return populate_default_kinesis_log(log, time, service, is_frontend)
+
+
+def populate_default_external_log(log, timestamp, service):
+    """
+    Populate a default, raw external error log using a given time and service.
+
+    A log from an external source has the following form:
+    {
+      "context": {},
+      "exception": {},
+      "level": "",
+      "message": "",
+      "metadata": {},
+      "service": "service",
+      "time": "%Y/%m/%d %H:%M:%S"
+    }
+
+    :param log: default, external error log
+    :type log: dict
+    :param timestamp: timestamp of the log
+    :type timestamp: datetime.datetime
+    :param service: service from which the error(s) is sent
+    :type service: str
+    :return:
+    """
+    log['message'] = 'N/A'
+    log['metadata']['hubbleContext'] = 'context@type'
+    log['time'] = datetime.datetime.strftime(
+        timestamp, TIME_FORMAT_KINESIS_ERROR)
+    log['service'] = service
+    return log
 
 
 def populate_default_gcp_log(log, timestamp, service):
@@ -438,7 +528,7 @@ def populate_default_gcp_log(log, timestamp, service):
       "versionId": ""
     }
 
-    :param log: default, Kinesis error log
+    :param log: default, GCP error log
     :type log: dict
     :param timestamp: timestamp of the log
     :type timestamp: datetime.datetime

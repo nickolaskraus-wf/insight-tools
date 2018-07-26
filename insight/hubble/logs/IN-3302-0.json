@@ -1,0 +1,17 @@
+{
+  "context": {
+    "correlationId": "1a06e616cd5b4c4398d2c9fd30df2126"
+  },
+  "exception": {
+    "message": "Do not use this message.",
+    "stacktrace": "stacktrace.dart",
+    "type": "Do not use this type."
+  },
+  "message": "Testing IN-3302 Part 0..",
+  "metadata": {
+    "hubbleContext": "Use this context.",
+    "hubbleErrorType": "Use this type."
+  },
+  "service": "snails",
+  "time": "2018/07/26 12:00:00"
+}
