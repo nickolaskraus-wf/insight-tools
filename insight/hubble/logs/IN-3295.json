@@ -4,7 +4,7 @@
   "exception": {
     "message": "Uncaught exception",
     "stacktrace": "testing.dart",
-    "type": "Bad state: nats topic token cannot be empty"
+    "type": "Bad state: An element already exists for id \"6517b4c0-d228-4eec-bab3-b8bb7480b6c6\"."
   },
   "host": {},
   "level": "error",
@@ -19,5 +19,5 @@
   "service": {
     "name": "app-int-collection-gateway"
   },
-  "timestamp": "2018-07-23T12:00:00.000Z"
+  "timestamp": "2018-08-14T12:00:00.000Z"
 }
