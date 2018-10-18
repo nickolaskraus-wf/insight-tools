@@ -1,5 +1,5 @@
 # insight-tools
-Python scripts for automating manual tasks.
+insight-tools comprises a collection of Python modules for automating manual tasks in Insight.
 
 [![codecov](https://codecov.io/gh/nickolaskraus-wf/insight-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/nickolaskraus-wf/insight-tools)
 
